@@ -107,6 +107,7 @@ class Client(resource.Site):
     endpoint = 'python-client'
     binding_mode = 'UQ'
     lifetime = 86400  # default: 86400
+    lwm2m = "1.0"
     context = None
     rd_resource = None
 
@@ -162,8 +163,7 @@ class Client(resource.Site):
         request.opt.uri_host = self.server
         request.opt.uri_port = self.server_port
         request.opt.uri_path = ('rd',)
-        request.opt.uri_query = (
-            f'ep={self.endpoint}', f'b={self.binding_mode}', f'lt={self.lifetime}')
+        request.opt.uri_query = (f'ep={self.endpoint}', f'b={self.binding_mode}', f'lt={self.lifetime}', f'lwm2m={self.lwm2m}',)
         response = await self.context.request(request).response
 
         # expect ACK
