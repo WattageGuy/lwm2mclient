@@ -88,12 +88,16 @@ See ``observe_3_0_13()`` example in ``handlers.py`` on how to trigger a periodic
 
 This project is licensed under the terms of [MIT License](LICENSE).
 
+# Changes
+
+This fork adds the version parameter in the CoAP call that is required by newer Leshan servers
+
 # ToDo
 
 * [x] implement TLV encoding
 * [x] implement Execute (via handlers)
 * [x] implement Observe (via handlers)
-* [x] implement Write 
+* [x] implement Write
 * [ ] implement Cancel Observation (when [this issue](https://github.com/chrysn/aiocoap/issues/30) is resolved)
 * [ ] improve data definition validation
 * [ ] extend with REST API (for instrumenting it using 3rd party software)
