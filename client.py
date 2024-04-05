@@ -29,7 +29,7 @@ class RequestHandler(ObservableResource):
     def handle_write(self, path, payload, content_format):
         return self.decoder.decode(path, payload, content_format)
 
-    def handle_observe(self, path, request):
+    async def handle_observe(self, path, request):
         plen = len(path)
         if plen == 1:
             obs = f'observe_{path[0]}'
@@ -76,6 +76,7 @@ class RequestHandler(ObservableResource):
         return Message(code=Code.CHANGED, payload=result) if result is not None else Message(code=Code.CHANGED)
 
     async def render(self, req):
+        #print("Full request:", req)
         path, request = req
         m = getattr(self, 'render_%s' % str(request.code).lower(), None)
         if not m:
@@ -85,7 +86,7 @@ class RequestHandler(ObservableResource):
     async def render_get(self, path, request):
         if request.opt.observe is not None:
             log.debug(f'observe on {"/".join(path)}')
-            return self.handle_observe(path, request)
+            return await self.handle_observe(path, request)
         else:
             log.debug(f'read on {"/".join(path)}')
             return self.handle_read(path)
@@ -104,14 +105,14 @@ class RequestHandler(ObservableResource):
 
 
 class Client(resource.Site):
-    endpoint = 'python-client'
+    endpoint = 'battery-sensor'
     binding_mode = 'UQ'
     lifetime = 86400  # default: 86400
     lwm2m = "1.0"
     context = None
     rd_resource = None
 
-    def __init__(self, model=ClientModel(), server='localhost', server_port=5683, **kwargs):
+    def __init__(self, model=ClientModel(), server='192.168.1.167', server_port=5683, **kwargs):
         super(Client, self).__init__()
         self.server = server
         self.server_port = server_port
@@ -127,11 +128,13 @@ class Client(resource.Site):
             self.add_resource(path, self.request_handler)
 
     async def render(self, request):
+        #print("Full request:", request)
         uri_path = request.opt.uri_path
         if len(uri_path) == 0:
             return await super().render(request)
         else:
             return await self.request_handler.render((uri_path, request,))
+
 
     async def update_register(self):
         log.debug('update_register()')

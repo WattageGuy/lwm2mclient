@@ -90,7 +90,7 @@ class TlvEncoder(object):
                 return Message(code=Code.METHOD_NOT_ALLOWED)
             _payload = TlvEncoder._resource_to_tlv(model, obj, inst, res)
             logging.debug(
-                f'encode_resource(): {hexdump(_payload, result="return")}')
+                f'encode_resource() [multi-resource]: {hexdump(_payload, result="return")}')
             msg = Message(code=Code.CONTENT, payload=_payload,
                           content_format=MediaType.TLV.value)
             return msg

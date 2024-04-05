@@ -97,6 +97,12 @@ if __name__ == '__main__':
     model = ClientModel()
     log.debug(f'object links: {",".join(model.get_object_links())}')
     log.debug(f'objects: {model.objects()}')
+
+    # Skriv ut alla objekt till konsolen
+    log.debug("All Objects:")
+    for obj in model.objects():
+        log.debug(f"Object ID: {obj}")
+
     for obj in model.objects():
         log.debug(
             f'object {obj} is multi-instance: {model.is_object_multi_instance(obj)}')
