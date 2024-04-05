@@ -89,7 +89,7 @@ See ``observe_3_0_13()`` example in ``handlers.py`` on how to trigger a periodic
 # BLE gateway
 The BLE gateway retrives data from specified GATT uuids (using notify) and stores it locally making it possible for each observe to fetch correct data, in this way only one BLE instance is initiated. The gw starts when the client starts. OBS! This gw is made to work on Mac OSX which uses name to connect to BL devices (change d.name == "BLE Battery Demo").
 
-To add or change a notification handler change or add this code ``await client.start_notify("insert uuid with notify here", b_level_notification_handler)`` in the handlers.py. You also need to add a handler function which uses another function to store the new value in the global varibel (also a function, see already implemented functions), this can be improved by implementing object language structure.
+To add or change a notification handler change or add this code ``await client.start_notify("insert uuid with notify here", b_level_notification_handler)`` in the handlers.py. You also need to add a handler function which uses another function to store the new value in the global variabel and some other functions (see already implemented functions), this can be improved by implementing object language structure.
 
 
 # License
