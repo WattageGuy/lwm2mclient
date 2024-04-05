@@ -21,6 +21,8 @@ Preferred way of installation is using [virtualenv](https://docs.python.org/3/tu
 
   ```
 * Now, run ``pip install -r requirements.txt`` to install this package in the activated virtualenv.
+* Or install aiocoap manually. Install tested and verified version with `` pip install -e git+https://github.com/chrysn/aiocoap@bd9faf757b0ae24fdd155b1ef711ca12ea85ddaf#egg=aiocoap
+``
 
 
 # Usage
@@ -83,6 +85,12 @@ A ``notifier`` argument is a function, which triggers a client-initiated notific
 periodically.  
 A ``cancel`` argument can be used in order to cancel an existing observation.
 See ``observe_3_0_13()`` example in ``handlers.py`` on how to trigger a periodic observation.  
+
+# BLE gateway
+The BLE gateway retrives data from specified GATT uuids (using notify) and stores it locally making it possible for each observe to fetch correct data, in this way only one BLE instance is initiated. The gw starts when the client starts. OBS! This gw is made to work on Mac OSX which uses name to connect to BL devices (change d.name == "BLE Battery Demo").
+
+To add or change a notification handler change or add this code ``await client.start_notify("insert uuid with notify here", b_level_notification_handler)`` in the handlers.py. You also need to add a handler function which uses another function to store the new value in the global varibel (also a function, see already implemented functions), this can be improved by implementing object language structure.
+
 
 # License
 
