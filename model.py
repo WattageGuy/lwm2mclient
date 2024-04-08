@@ -81,7 +81,7 @@ class ClientModel(object):
         _ops = self.definition[obj]['resourcedefs'][str(res)]['operations']
         return False if _ops == 'NONE' else 'E' in _ops
 
-    def set_resource(self, obj, inst, res, content):
+    async def set_resource(self, obj, inst, res, content):
         self.data[str(obj)][str(inst)][str(res)] = content
 
     def apply(self, data):

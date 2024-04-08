@@ -23,13 +23,20 @@ class RequestHandler(ObservableResource):
         self.encoder = encoder
         self.decoder = decoder
 
-    def handle_read(self, path):
+    async def handle_read(self, path):
+        if path == ('3411', '0', '1'):
+            await self.model.set_resource('3411', '0', "1", read_battery_level())
+        elif path == ('3411', '0', '2'):
+            await self.model.set_resource('3411', '0', "2", read_battery_ampere())
+        elif path == ('3411', '0', '3'):
+            await self.model.set_resource('3411', '0', "3", read_battery_voltage())
         return self.encoder.encode(path)
 
     def handle_write(self, path, payload, content_format):
         return self.decoder.decode(path, payload, content_format)
 
-    async def handle_observe(self, path, request):
+    async def handle_observe(self, request):
+        path = request.opt.uri_path
         plen = len(path)
         if plen == 1:
             obs = f'observe_{path[0]}'
@@ -40,7 +47,7 @@ class RequestHandler(ObservableResource):
         else:
             return Message(code=Code.BAD_REQUEST)
 
-        def _notifier():
+        async def _notifier():
             self.updated_state(response=self.encoder.encode(path))
 
         try:
@@ -75,21 +82,20 @@ class RequestHandler(ObservableResource):
         result = _op_method(None, **_kwargs)
         return Message(code=Code.CHANGED, payload=result) if result is not None else Message(code=Code.CHANGED)
 
-    async def render(self, req):
+    async def render(self, request):
         #print("Full request:", req)
-        path, request = req
         m = getattr(self, 'render_%s' % str(request.code).lower(), None)
         if not m:
             raise error.UnallowedMethod()
-        return await m(path, request)
+        return await m(request)
 
-    async def render_get(self, path, request):
+    async def render_get(self, request):
         if request.opt.observe is not None:
-            log.debug(f'observe on {"/".join(path)}')
-            return await self.handle_observe(path, request)
+            log.debug(f'observe on {"/".join(request.opt.uri_path)}')
+            return await self.handle_observe(request)
         else:
-            log.debug(f'read on {"/".join(path)}')
-            return self.handle_read(path)
+            log.debug(f'read on {"/".join(request.opt.uri_path)}')
+            return await self.handle_read(request.opt.uri_path)
 
     async def render_put(self, path, request):
         log.debug(f'write on {"/".join(path)}')
@@ -112,7 +118,7 @@ class Client(resource.Site):
     context = None
     rd_resource = None
 
-    def __init__(self, model=ClientModel(), server='192.168.1.167', server_port=5683, **kwargs):
+    def __init__(self, model=ClientModel(), server='localhost', server_port=5683, **kwargs):
         super(Client, self).__init__()
         self.server = server
         self.server_port = server_port

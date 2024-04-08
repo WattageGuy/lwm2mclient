@@ -4,10 +4,12 @@ from bleak import BleakScanner, BleakClient
 
 # Event to watch for new data
 battery_level_event = asyncio.Event()
+battery_ampere_event = asyncio.Event()
 battery_voltage_event = asyncio.Event()
 
 # Global to resources
 battery_level_value = 0
+battery_ampere_value = 0
 battery_voltage_value = 0
 
 log = logging.getLogger('handlers')
@@ -17,11 +19,16 @@ def change_battery_level(new_value):
     global battery_level_value
     battery_level_value = new_value
 
+def change_battery_ampere(new_value):
+    global battery_ampere_value
+    battery_ampere_value = new_value
+
 def change_battery_voltage(new_value):
     global battery_voltage_value
     battery_voltage_value = new_value
 
 cancel_observe_3411_0_1 = False
+cancel_observe_3411_0_2 = False
 cancel_observe_3411_0_3 = False
 
 async def read_ble():
@@ -41,9 +48,15 @@ async def read_ble():
                 change_battery_voltage(reading_decimal / 1000.0)
                 battery_voltage_event.set()
 
+            def b_ampere_notification_handler(sender, data):
+                reading_decimal = int.from_bytes(data, byteorder="little")
+                change_battery_ampere(reading_decimal / 1000.0)
+                battery_ampere_event.set()
+
             # Set up notification handlers
             await client.start_notify("00002A19-0000-1000-8000-00805F9B34FB", b_level_notification_handler)
             await client.start_notify("347BA623-F41A-4B59-A508-DE45079B4F20", b_voltage_notification_handler)
+            await client.start_notify("32B4E46D-807F-4E75-ADD7-B08A613E76F3", b_ampere_notification_handler)
 
             # Wait for cancellation
             while not cancel_observe_3411_0_1 and not cancel_observe_3411_0_3:
@@ -64,8 +77,26 @@ async def get_battery_level(model, notifier):
         await battery_level_event.wait()
         battery_level_event.clear()
         print("New value for resource 1 = ", battery_level_value)
-        model.set_resource('3411', '0', "1", battery_level_value)
-        notifier()
+        await model.set_resource('3411', '0', "1", battery_level_value)
+        await notifier()
+
+def read_battery_level():
+    global battery_level_value
+    return battery_level_value
+
+async def get_battery_ampere(model, notifier):
+    global cancel_observe_3411_0_2
+    while not cancel_observe_3411_0_2:
+        global battery_ampere_value
+        await battery_ampere_event.wait()
+        battery_ampere_event.clear()
+        print("New value for resource 2 = ", battery_ampere_value)
+        await model.set_resource('3411', '0', "2", battery_ampere_value)
+        await notifier()
+
+def read_battery_ampere():
+    global battery_ampere_value
+    return battery_ampere_value
 
 async def get_battery_voltage(model, notifier):
     while True:
@@ -74,9 +105,12 @@ async def get_battery_voltage(model, notifier):
         await battery_voltage_event.wait()
         battery_voltage_event.clear()
         print("New value for resource 3 = ", battery_voltage_value)
-        model.set_resource('3411', '0', "3", battery_voltage_value)
-        notifier()
+        await model.set_resource('3411', '0', "3", battery_voltage_value)
+        await notifier()
 
+def read_battery_voltage():
+    global battery_voltage_value
+    return battery_voltage_value
 
 def observe_3411_0_1(*args, **kwargs):
     global cancel_observe_3411_0_1
@@ -86,6 +120,15 @@ def observe_3411_0_1(*args, **kwargs):
     cancel_observe_3411_0_1 = kwargs['cancel']
 
     asyncio.ensure_future(get_battery_level(model, notifier))
+
+def observe_3411_0_2(*args, **kwargs):
+    global cancel_observe_3411_0_2
+    log.info(f'observe_3411_0_2(): {args}, {kwargs}')
+    model = kwargs['model']
+    notifier = kwargs['notifier']
+    cancel_observe_3411_0_2 = kwargs['cancel']
+
+    asyncio.ensure_future(get_battery_ampere(model, notifier))
 
 def observe_3411_0_3(*args, **kwargs):
     global cancel_observe_3411_0_3
