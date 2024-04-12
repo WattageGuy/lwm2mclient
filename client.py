@@ -25,11 +25,14 @@ class RequestHandler(ObservableResource):
 
     async def handle_read(self, path):
         if path == ('3411', '0', '1'):
-            await self.model.set_resource('3411', '0', "1", read_battery_level())
+            value = await read_battery_level()
+            await self.model.set_resource('3411', '0', "1", value)
         elif path == ('3411', '0', '2'):
-            await self.model.set_resource('3411', '0', "2", read_battery_ampere())
+            value = await read_battery_ampere()
+            await self.model.set_resource('3411', '0', "2", value)
         elif path == ('3411', '0', '3'):
-            await self.model.set_resource('3411', '0', "3", read_battery_voltage())
+            value = await read_battery_voltage()
+            await self.model.set_resource('3411', '0', "3", value)
         return self.encoder.encode(path)
 
     def handle_write(self, path, payload, content_format):
@@ -65,7 +68,8 @@ class RequestHandler(ObservableResource):
             pass
         return Message(code=Code.METHOD_NOT_ALLOWED)
 
-    def handle_exec(self, path, request):
+    def handle_exec(self, request):
+        path = request.opt.uri_path
         if len(path) != 3 or not self.model.is_path_valid(path):
             return Message(code=Code.BAD_REQUEST)
         if not self.model.is_resource_executable(path[0], path[1], path[2]):
@@ -105,9 +109,9 @@ class RequestHandler(ObservableResource):
             self.model.apply(_decoded)
         return message
 
-    async def render_post(self, path, request):
-        log.debug(f'execute on {"/".join(path)}')
-        return self.handle_exec(path, request)
+    async def render_post(self, request):
+        log.debug(f'execute on {"/".join(request.opt.uri_path)}')
+        return self.handle_exec(request)
 
 
 class Client(resource.Site):
