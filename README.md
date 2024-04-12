@@ -21,8 +21,7 @@ Preferred way of installation is using [virtualenv](https://docs.python.org/3/tu
 
   ```
 * Now, run ``pip install -r requirements.txt`` to install this package in the activated virtualenv.
-* Or install aiocoap manually. Install tested and verified version with `` pip install -e git+https://github.com/chrysn/aiocoap@bd9faf757b0ae24fdd155b1ef711ca12ea85ddaf#egg=aiocoap
-``
+* Install this modified aiocoap (Includes path in request): ``pip install git+https://github.com/WattageGuy/aiocoap.git``
 
 
 # Usage
